@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lower Manhattan Walking Tour 🗽</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  
+  #map { width: 100%; height: 55vh; min-height: 350px; }
+  
+  .header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 16px 20px;
+    text-align: center;
+    border-bottom: 2px solid #e94560;
+  }
+  .header h1 { font-size: 1.4em; color: #fff; margin-bottom: 4px; }
+  .header .subtitle { font-size: 0.85em; color: #aaa; }
+  
+  .stops-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  
+  .stop-card {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #e94560;
+    position: relative;
+  }
+  .stop-card.highlight {
+    border-left-color: #f5a623;
+    background: #1a1a2e;
+  }
+  
+  .stop-number {
+    display: inline-block;
+    background: #e94560;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-right: 8px;
+  }
+  .stop-card.highlight .stop-number { background: #f5a623; }
+  
+  .stop-name { font-size: 1.1em; font-weight: 600; color: #fff; display: inline; }
+  .stop-emoji { font-size: 1.2em; margin-left: 6px; }
+  .stop-desc { margin-top: 8px; font-size: 0.9em; color: #bbb; line-height: 1.5; }
+  .stop-meta {
+    margin-top: 10px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    background: #16213e;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    color: #7ec8e3;
+  }
+  .meta-item.time { color: #f5a623; }
+  .meta-item.stroller { color: #4ecdc4; }
+  
+  .segment {
+    text-align: center;
+    padding: 8px;
+    color: #666;
+    font-size: 0.8em;
+  }
+  .segment .arrow { font-size: 1.2em; color: #e94560; }
+  .segment .dist { color: #7ec8e3; }
+  
+  .summary {
+    background: linear-gradient(135deg, #16213e, #1a1a2e);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    text-align: center;
+    border: 1px solid #e94560;
+  }
+  .summary h3 { color: #e94560; margin-bottom: 8px; }
+  .summary-grid {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .summary-item { text-align: center; }
+  .summary-item .value { font-size: 1.5em; font-weight: bold; color: #fff; }
+  .summary-item .label { font-size: 0.75em; color: #888; }
+  
+  .tip {
+    background: #1a2e1a;
+    border-left: 3px solid #4ecdc4;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    font-size: 0.85em;
+    color: #a0d0a0;
+  }
+
+  /* Leaflet popup customization */
+  .leaflet-popup-content-wrapper {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-radius: 10px;
+    border: 1px solid #e94560;
+  }
+  .leaflet-popup-tip { background: #1a1a2e; }
+  .leaflet-popup-content { font-family: -apple-system, sans-serif; font-size: 13px; }
+  .popup-title { font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 4px; }
+  .popup-time { color: #f5a623; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🗽 Lower Manhattan Walking Tour</h1>
+  <div class="subtitle">📍 7 остановок · 🚶 ~3.5 км · ⏱ 3-3.5 часа · 👶 Stroller-friendly</div>
+</div>
+
+<div id="map"></div>
+
+<div class="stops-container">
+  
+  <div class="summary">
+    <h3>📊 Итого</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="value">3.5 км</div>
+        <div class="label">Общая дистанция</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">~3ч 15м</div>
+        <div class="label">Общее время</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">7</div>
+        <div class="label">Остановок</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">19:17</div>
+        <div class="label">Закат 🌅</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    💡 <b>Совет:</b> Начните в 16:00-16:30 EDT — захватите золотой час и закончите у Battery Park на закате ~19:17.
+  </div>
+
+  <!-- Stop 1 -->
+  <div class="stop-card" style="margin-top: 16px;">
+    <span class="stop-number">1</span>
+    <span class="stop-name">Brooklyn Bridge</span>
+    <span class="stop-emoji">🌉</span>
+    <div class="stop-desc">
+      Старт! Вход с Manhattan стороны — пандус на Centre St & Park Row (коляска ОК). Дойдите до первой башни (~10 мин) — лучшие виды на Манхэттен и Бруклин. Сделайте фото и возвращайтесь. Не нужно идти до конца — самые красивые виды именно у первой башни.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 35 мин</span>
+      <span class="meta-item">📸 Виды на skyline + мост</span>
+      <span class="meta-item stroller">👶 Пандус, без ступенек</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.8 км · 10 мин</div>
+  </div>
+
+  <!-- Stop 2 -->
+  <div class="stop-card">
+    <span class="stop-number">2</span>
+    <span class="stop-name">9/11 Memorial & The Oculus</span>
+    <span class="stop-emoji">🕊</span>
+    <div class="stop-desc">
+      Два гигантских бассейна-водопада на месте башен-близнецов — очень мощное, тихое место. Вход бесплатный. Рядом — The Oculus: футуристическое белое здание-станция Калатравы. Внутри впечатляющий интерьер + магазины. Есть лифты.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 30-35 мин</span>
+      <span class="meta-item">🆓 Бесплатно</span>
+      <span class="meta-item stroller">👶 Полностью доступно</span>
+      <span class="meta-item">⚠️ Oculus закрывается в 19:00</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.3 км · 5 мин (по Broadway на юг)</div>
+  </div>
+
+  <!-- Stop 3 -->
+  <div class="stop-card">
+    <span class="stop-number">3</span>
+    <span class="stop-name">Trinity Church</span>
+    <span class="stop-emoji">⛪</span>
+    <div class="stop-desc">
+      Историческая церковь 1846 года в неоготическом стиле. На кладбище похоронен Александр Гамильтон. Красивый контраст — старая церковь в окружении небоскрёбов. Достаточно осмотреть снаружи, 5-10 минут.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 10 мин</span>
+      <span class="meta-item">📸 Готика + небоскрёбы</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.2 км · 3 мин</div>
+  </div>
+
+  <!-- Stop 4 -->
+  <div class="stop-card">
+    <span class="stop-number">4</span>
+    <span class="stop-name">Wall Street</span>
+    <span class="stop-emoji">💰</span>
+    <div class="stop-desc">
+      <b>Federal Hall</b> — где Вашингтон принял присягу (статуя у входа). <b>NYSE</b> — знаменитый фасад Нью-Йоркской биржи через дорогу. Узкая улица, каменные здания — атмосфера финансовой столицы мира. Всё снаружи — заходить никуда не надо.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 15 мин</span>
+      <span class="meta-item">📸 Federal Hall + NYSE</span>
+      <span class="meta-item stroller">👶 Ровный тротуар</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.3 км · 5 мин (вниз по Broadway)</div>
+  </div>
+
+  <!-- Stop 5 -->
+  <div class="stop-card highlight">
+    <span class="stop-number">5</span>
+    <span class="stop-name">Charging Bull</span>
+    <span class="stop-emoji">🐂</span>
+    <div class="stop-desc">
+      Легендарный бронзовый бык на Bowling Green — символ Уолл-стрит. Обязательное фото! Вечером народу меньше, чем днём. Рядом бывшая статуя Fearless Girl (перемещена к NYSE).
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 10 мин</span>
+      <span class="meta-item">📸 Культовое фото</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.15 км · 2 мин</div>
+  </div>
+
+  <!-- Stop 6 -->
+  <div class="stop-card">
+    <span class="stop-number">6</span>
+    <span class="stop-name">Stone Street</span>
+    <span class="stop-emoji">🍺</span>
+    <div class="stop-desc">
+      Старейшая мощёная улица Манхэттена, полностью пешеходная. Рестораны и бары с террасами под открытым небом. Идеальное место для перекуса или напитка. Атмосфера старого Нью-Йорка.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 15-20 мин (если перекус)</span>
+      <span class="meta-item">🍕 Еда и напитки</span>
+      <span class="meta-item stroller">👶 Пешеходная зона</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.4 км · 5 мин</div>
+  </div>
+
+  <!-- Stop 7 -->
+  <div class="stop-card highlight">
+    <span class="stop-number">7</span>
+    <span class="stop-name">Battery Park</span>
+    <span class="stop-emoji">🌅</span>
+    <div class="stop-desc">
+      Финиш! Южная оконечность Манхэттена с видом на Статую Свободы через воду. Идеальное место для заката (~19:17 сегодня). Парк ровный и просторный — отличное место отдохнуть. Есть SeaGlass Carousel (крутая карусель для ребёнка, ~$5). Отсюда легко взять такси или метро домой.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 20-30 мин</span>
+      <span class="meta-item">🗽 Вид на Статую Свободы</span>
+      <span class="meta-item stroller">👶 Ровные дорожки, карусель</span>
+      <span class="meta-item">🚇 Метро: Bowling Green (4,5)</span>
+    </div>
+  </div>
+
+  <div class="tip" style="margin-top: 16px;">
+    🚇 <b>Как уехать:</b> Метро Bowling Green (линии 4, 5) или Whitehall St (линия R, W) — прямо у Battery Park. Такси тоже легко ловятся на State Street.
+  </div>
+
+  <div class="tip">
+    🍼 <b>Туалеты с пеленальным столиком:</b> The Oculus (Stop 2), Battery Park Castle Clinton (Stop 7). Stone Street рестораны тоже пустят.
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const stops = [
+  { lat: 40.7058, lng: -73.9969, name: "1. Brooklyn Bridge 🌉", desc: "Старт маршрута · 35 мин", color: "#e94560" },
+  { lat: 40.7115, lng: -74.0134, name: "2. 9/11 Memorial & Oculus 🕊", desc: "Мемориал + архитектура · 30-35 мин", color: "#e94560" },
+  { lat: 40.7081, lng: -74.0121, name: "3. Trinity Church ⛪", desc: "Готическая церковь · 10 мин", color: "#e94560" },
+  { lat: 40.7069, lng: -74.0101, name: "4. Wall Street 💰", desc: "NYSE + Federal Hall · 15 мин", color: "#e94560" },
+  { lat: 40.7056, lng: -74.0134, name: "5. Charging Bull 🐂", desc: "Культовое фото · 10 мин", color: "#f5a623" },
+  { lat: 40.7038, lng: -74.0085, name: "6. Stone Street 🍺", desc: "Перекус · 15-20 мин", color: "#e94560" },
+  { lat: 40.7033, lng: -74.0170, name: "7. Battery Park 🌅", desc: "Финиш + закат · 20-30 мин", color: "#f5a623" },
+];
+
+// Walking route waypoints (approximate street-level path)
+const routeCoords = [
+  [40.7058, -73.9969],  // Brooklyn Bridge entrance
+  [40.7073, -73.9990],  // Park Row
+  [40.7102, -74.0065],  // Broadway heading south-west
+  [40.7115, -74.0134],  // 9/11 Memorial
+  [40.7081, -74.0121],  // Trinity Church
+  [40.7069, -74.0101],  // Wall Street
+  [40.7056, -74.0134],  // Charging Bull
+  [40.7044, -74.0110],  // heading to Stone St
+  [40.7038, -74.0085],  // Stone Street
+  [40.7035, -74.0120],  // heading to Battery Park
+  [40.7033, -74.0170],  // Battery Park
+];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true,
+}).setView([40.7075, -74.0080], 15);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  maxZoom: 19
+}).addTo(map);
+
+// Draw route line
+L.polyline(routeCoords, {
+  color: '#e94560',
+  weight: 4,
+  opacity: 0.8,
+  dashArray: '10, 8',
+  lineCap: 'round'
+}).addTo(map);
+
+// Add markers
+stops.forEach((stop, i) => {
+  const markerHtml = `<div style="
+    background: ${stop.color};
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  ">${i + 1}</div>`;
+  
+  const icon = L.divIcon({
+    html: markerHtml,
+    className: '',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -18]
+  });
+  
+  L.marker([stop.lat, stop.lng], { icon })
+    .addTo(map)
+    .bindPopup(`<div class="popup-title">${stop.name}</div><div class="popup-time">${stop.desc}</div>`);
+});
+
+// Fit bounds with padding
+const bounds = L.latLngBounds(stops.map(s => [s.lat, s.lng]));
+map.fitBounds(bounds, { padding: [30, 30] });
+</script>
+
+</body>
+</html>
