@@ -20,10 +20,41 @@
   .header h1 { font-size: 1.4em; color: #fff; margin-bottom: 4px; }
   .header .subtitle { font-size: 0.85em; color: #aaa; }
   
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 10px;
+    background: #111;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75em;
+    color: #aaa;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  
   .stops-container {
     max-width: 700px;
     margin: 0 auto;
     padding: 16px;
+  }
+  
+  .section-header {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #e94560;
+    margin: 20px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #333;
   }
   
   .stop-card {
@@ -36,7 +67,14 @@
   }
   .stop-card.highlight {
     border-left-color: #f5a623;
-    background: #1a1a2e;
+  }
+  .stop-card.food {
+    border-left-color: #ff6b35;
+    background: #1e1a15;
+  }
+  .stop-card.bonus {
+    border-left-color: #4ecdc4;
+    background: #151e1d;
   }
   
   .stop-number {
@@ -53,6 +91,8 @@
     margin-right: 8px;
   }
   .stop-card.highlight .stop-number { background: #f5a623; }
+  .stop-card.food .stop-number { background: #ff6b35; }
+  .stop-card.bonus .stop-number { background: #4ecdc4; }
   
   .stop-name { font-size: 1.1em; font-weight: 600; color: #fff; display: inline; }
   .stop-emoji { font-size: 1.2em; margin-left: 6px; }
@@ -60,18 +100,20 @@
   .stop-meta {
     margin-top: 10px;
     display: flex;
-    gap: 16px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .meta-item {
     background: #16213e;
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 0.8em;
+    font-size: 0.78em;
     color: #7ec8e3;
   }
   .meta-item.time { color: #f5a623; }
   .meta-item.stroller { color: #4ecdc4; }
+  .meta-item.warn { color: #ff6b6b; background: #2a1515; }
+  .meta-item.food-tag { color: #ff6b35; background: #1e1510; }
   
   .segment {
     text-align: center;
@@ -109,9 +151,9 @@
     margin-top: 12px;
     font-size: 0.85em;
     color: #a0d0a0;
+    line-height: 1.5;
   }
 
-  /* Leaflet popup customization */
   .leaflet-popup-content-wrapper {
     background: #1a1a2e;
     color: #e0e0e0;
@@ -119,19 +161,26 @@
     border: 1px solid #e94560;
   }
   .leaflet-popup-tip { background: #1a1a2e; }
-  .leaflet-popup-content { font-family: -apple-system, sans-serif; font-size: 13px; }
+  .leaflet-popup-content { font-family: -apple-system, sans-serif; font-size: 13px; line-height: 1.4; }
   .popup-title { font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 4px; }
   .popup-time { color: #f5a623; font-size: 12px; }
+  .popup-food { color: #ff6b35; font-size: 12px; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>🗽 Lower Manhattan Walking Tour</h1>
-  <div class="subtitle">📍 7 остановок · 🚶 ~3.5 км · ⏱ 3-3.5 часа · 👶 Stroller-friendly</div>
+  <div class="subtitle">📍 9 остановок · 🚶 ~3.5 км · ⏱ 3.5-4 часа · 👶 Stroller-friendly</div>
 </div>
 
 <div id="map"></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e94560"></div> Основные</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4ecdc4"></div> Бонус</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff6b35"></div> Еда и кофе</div>
+</div>
 
 <div class="stops-container">
   
@@ -139,16 +188,16 @@
     <h3>📊 Итого</h3>
     <div class="summary-grid">
       <div class="summary-item">
-        <div class="value">3.5 км</div>
-        <div class="label">Общая дистанция</div>
+        <div class="value">~3.5 км</div>
+        <div class="label">Дистанция</div>
       </div>
       <div class="summary-item">
-        <div class="value">~3ч 15м</div>
+        <div class="value">~3.5ч</div>
         <div class="label">Общее время</div>
       </div>
       <div class="summary-item">
-        <div class="value">7</div>
-        <div class="label">Остановок</div>
+        <div class="value">9+6</div>
+        <div class="label">Точки + еда</div>
       </div>
       <div class="summary-item">
         <div class="value">19:17</div>
@@ -158,20 +207,21 @@
   </div>
 
   <div class="tip">
-    💡 <b>Совет:</b> Начните в 16:00-16:30 EDT — захватите золотой час и закончите у Battery Park на закате ~19:17.
+    💡 <b>Старт в ~15:30-16:00 EDT</b> — захватите золотой час и закончите у Battery Park к закату ~19:17. С новыми точками закладывайте 3.5-4 часа.
   </div>
 
+  <div class="section-header">🗺 Маршрут</div>
+
   <!-- Stop 1 -->
-  <div class="stop-card" style="margin-top: 16px;">
+  <div class="stop-card">
     <span class="stop-number">1</span>
     <span class="stop-name">Brooklyn Bridge</span>
     <span class="stop-emoji">🌉</span>
     <div class="stop-desc">
-      Старт! Вход с Manhattan стороны — пандус на Centre St & Park Row (коляска ОК). Дойдите до первой башни (~10 мин) — лучшие виды на Манхэттен и Бруклин. Сделайте фото и возвращайтесь. Не нужно идти до конца — самые красивые виды именно у первой башни.
+      Вход с Manhattan стороны — пандус на Centre St & Park Row. Дойдите до первой башни (~10 мин) — лучшие виды на skyline. Фото и назад. Вечером мост красиво подсвечивается.
     </div>
     <div class="stop-meta">
       <span class="meta-item time">⏱ 35 мин</span>
-      <span class="meta-item">📸 Виды на skyline + мост</span>
       <span class="meta-item stroller">👶 Пандус, без ступенек</span>
     </div>
   </div>
@@ -187,19 +237,18 @@
     <span class="stop-name">9/11 Memorial & The Oculus</span>
     <span class="stop-emoji">🕊</span>
     <div class="stop-desc">
-      Два гигантских бассейна-водопада на месте башен-близнецов — очень мощное, тихое место. Вход бесплатный. Рядом — The Oculus: футуристическое белое здание-станция Калатравы. Внутри впечатляющий интерьер + магазины. Есть лифты.
+      Два бассейна-водопада на месте башен — мощное, тихое место. Бесплатно. The Oculus рядом: футуристическое белое здание Калатравы. Впечатляющий интерьер, лифты.
     </div>
     <div class="stop-meta">
-      <span class="meta-item time">⏱ 30-35 мин</span>
+      <span class="meta-item time">⏱ 30 мин</span>
       <span class="meta-item">🆓 Бесплатно</span>
-      <span class="meta-item stroller">👶 Полностью доступно</span>
-      <span class="meta-item">⚠️ Oculus закрывается в 19:00</span>
+      <span class="meta-item warn">⚠️ Oculus до 19:00</span>
     </div>
   </div>
 
   <div class="segment">
     <div class="arrow">↓</div>
-    <div class="dist">🚶 0.3 км · 5 мин (по Broadway на юг)</div>
+    <div class="dist">🚶 0.3 км · 5 мин</div>
   </div>
 
   <!-- Stop 3 -->
@@ -208,11 +257,10 @@
     <span class="stop-name">Trinity Church</span>
     <span class="stop-emoji">⛪</span>
     <div class="stop-desc">
-      Историческая церковь 1846 года в неоготическом стиле. На кладбище похоронен Александр Гамильтон. Красивый контраст — старая церковь в окружении небоскрёбов. Достаточно осмотреть снаружи, 5-10 минут.
+      Неоготическая церковь 1846 года. Гамильтон похоронен на кладбище. Красивый контраст — старая церковь среди небоскрёбов. Осмотр снаружи.
     </div>
     <div class="stop-meta">
       <span class="meta-item time">⏱ 10 мин</span>
-      <span class="meta-item">📸 Готика + небоскрёбы</span>
     </div>
   </div>
 
@@ -224,15 +272,34 @@
   <!-- Stop 4 -->
   <div class="stop-card">
     <span class="stop-number">4</span>
-    <span class="stop-name">Wall Street</span>
+    <span class="stop-name">Wall Street & Federal Hall</span>
     <span class="stop-emoji">💰</span>
     <div class="stop-desc">
-      <b>Federal Hall</b> — где Вашингтон принял присягу (статуя у входа). <b>NYSE</b> — знаменитый фасад Нью-Йоркской биржи через дорогу. Узкая улица, каменные здания — атмосфера финансовой столицы мира. Всё снаружи — заходить никуда не надо.
+      Federal Hall — где Вашингтон принял присягу (статуя у входа). NYSE через дорогу — знаменитый фасад биржи. Узкая каменная улица, атмосфера финансовой столицы.
     </div>
     <div class="stop-meta">
       <span class="meta-item time">⏱ 15 мин</span>
       <span class="meta-item">📸 Federal Hall + NYSE</span>
-      <span class="meta-item stroller">👶 Ровный тротуар</span>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="arrow">↓</div>
+    <div class="dist">🚶 0.2 км · 3 мин (на юг по Nassau St)</div>
+  </div>
+
+  <!-- Stop 5 — NEW: FRB -->
+  <div class="stop-card bonus">
+    <span class="stop-number">5</span>
+    <span class="stop-name">Federal Reserve Bank</span>
+    <span class="stop-emoji">🏦</span>
+    <div class="stop-desc">
+      Здание, в подвалах которого хранится крупнейший запас золота в мире (~6,000 тонн на глубине 24 метров). Массивный неоренессансный фасад из известняка и песчаника. Выглядит как крепость — потому что это она и есть. Только снаружи.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 5 мин</span>
+      <span class="meta-item">📸 Фасад-крепость</span>
+      <span class="meta-item">📍 33 Liberty St</span>
     </div>
   </div>
 
@@ -241,13 +308,13 @@
     <div class="dist">🚶 0.3 км · 5 мин (вниз по Broadway)</div>
   </div>
 
-  <!-- Stop 5 -->
+  <!-- Stop 6 -->
   <div class="stop-card highlight">
-    <span class="stop-number">5</span>
+    <span class="stop-number">6</span>
     <span class="stop-name">Charging Bull</span>
     <span class="stop-emoji">🐂</span>
     <div class="stop-desc">
-      Легендарный бронзовый бык на Bowling Green — символ Уолл-стрит. Обязательное фото! Вечером народу меньше, чем днём. Рядом бывшая статуя Fearless Girl (перемещена к NYSE).
+      Бронзовый бык на Bowling Green — символ Уолл-стрит. Обязательное фото! Вечером народу меньше, чем днём.
     </div>
     <div class="stop-meta">
       <span class="meta-item time">⏱ 10 мин</span>
@@ -260,17 +327,16 @@
     <div class="dist">🚶 0.15 км · 2 мин</div>
   </div>
 
-  <!-- Stop 6 -->
+  <!-- Stop 7 -->
   <div class="stop-card">
-    <span class="stop-number">6</span>
+    <span class="stop-number">7</span>
     <span class="stop-name">Stone Street</span>
     <span class="stop-emoji">🍺</span>
     <div class="stop-desc">
-      Старейшая мощёная улица Манхэттена, полностью пешеходная. Рестораны и бары с террасами под открытым небом. Идеальное место для перекуса или напитка. Атмосфера старого Нью-Йорка.
+      Старейшая мощёная улица Манхэттена, полностью пешеходная. Рестораны с террасами. Отличное место для привала и перекуса (подробнее — в секции еды ниже).
     </div>
     <div class="stop-meta">
-      <span class="meta-item time">⏱ 15-20 мин (если перекус)</span>
-      <span class="meta-item">🍕 Еда и напитки</span>
+      <span class="meta-item time">⏱ 20 мин</span>
       <span class="meta-item stroller">👶 Пешеходная зона</span>
     </div>
   </div>
@@ -280,70 +346,203 @@
     <div class="dist">🚶 0.4 км · 5 мин</div>
   </div>
 
-  <!-- Stop 7 -->
+  <!-- Stop 8 — Battery Park with Sphere + SeaGlass -->
   <div class="stop-card highlight">
-    <span class="stop-number">7</span>
+    <span class="stop-number">8</span>
     <span class="stop-name">Battery Park</span>
     <span class="stop-emoji">🌅</span>
     <div class="stop-desc">
-      Финиш! Южная оконечность Манхэттена с видом на Статую Свободы через воду. Идеальное место для заката (~19:17 сегодня). Парк ровный и просторный — отличное место отдохнуть. Есть SeaGlass Carousel (крутая карусель для ребёнка, ~$5). Отсюда легко взять такси или метро домой.
+      Южная оконечность Манхэттена. Вид на Статую Свободы через воду. Идеальное место для заката.
     </div>
     <div class="stop-meta">
       <span class="meta-item time">⏱ 20-30 мин</span>
       <span class="meta-item">🗽 Вид на Статую Свободы</span>
-      <span class="meta-item stroller">👶 Ровные дорожки, карусель</span>
-      <span class="meta-item">🚇 Метро: Bowling Green (4,5)</span>
+      <span class="meta-item stroller">👶 Ровные дорожки</span>
     </div>
   </div>
 
-  <div class="tip" style="margin-top: 16px;">
-    🚇 <b>Как уехать:</b> Метро Bowling Green (линии 4, 5) или Whitehall St (линия R, W) — прямо у Battery Park. Такси тоже легко ловятся на State Street.
+  <!-- Sub-stops inside Battery Park -->
+  <div class="stop-card bonus" style="margin-left: 20px; border-left-width: 3px;">
+    <span class="stop-number" style="background:#4ecdc4; width:24px; height:24px; line-height:24px; font-size:0.7em;">8a</span>
+    <span class="stop-name" style="font-size:1em;">The Sphere</span>
+    <span class="stop-emoji">🔮</span>
+    <div class="stop-desc">
+      Бронзовая скульптура Фрица Кёнига, которая стояла на площади между башнями-близнецами и пережила 11 сентября. Повреждённая, но целая — символ стойкости. Бесплатно, прямо в парке.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 5 мин</span>
+      <span class="meta-item">🆓 Бесплатно</span>
+    </div>
+  </div>
+
+  <div class="stop-card bonus" style="margin-left: 20px; border-left-width: 3px;">
+    <span class="stop-number" style="background:#4ecdc4; width:24px; height:24px; line-height:24px; font-size:0.7em;">8b</span>
+    <span class="stop-name" style="font-size:1em;">SeaGlass Carousel</span>
+    <span class="stop-emoji">🎠</span>
+    <div class="stop-desc">
+      Вместо лошадей — гигантские светящиеся рыбы внутри стеклянного павильона. Вечером особенно красиво с подсветкой. Ребёнку понравится, взрослым тоже. ~$5/чел.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item time">⏱ 10 мин</span>
+      <span class="meta-item">💲 ~$5</span>
+      <span class="meta-item stroller">👶 Доступно</span>
+    </div>
+  </div>
+
+  <!-- Section: Food & Coffee -->
+  <div class="section-header">🍕 Еда, кофе, перекусы по пути</div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">☕</span>
+    <span class="stop-name">Eataly Downtown</span>
+    <div class="stop-desc">
+      Итальянский фудхолл у WTC — паста, пицца, кофе, десерты, вино. Можно просто зайти за эспрессо или сесть в La Pizza & La Pasta. Удобно с коляской.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 101 Liberty St (у Stop 2)</span>
+      <span class="meta-item">🕐 До 23:00</span>
+      <span class="meta-item food-tag">💰 $$</span>
+    </div>
+  </div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">🍸</span>
+    <span class="stop-name">The Dead Rabbit</span>
+    <div class="stop-desc">
+      Многократно признанный лучшим баром мира. Ирландский паб на первом этаже (еда + пиво), коктейльный бар наверху. 5 этажей в здании XIX века. Работает с 11:00.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 30 Water St (у Stop 7)</span>
+      <span class="meta-item">🕐 До 02:00</span>
+      <span class="meta-item food-tag">💰 $$-$$$</span>
+    </div>
+  </div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">🍕</span>
+    <span class="stop-name">Adrienne's Pizzabar</span>
+    <div class="stop-desc">
+      Легендарная пиццерия прямо на Stone Street. Тонкая прямоугольная пицца на противне (old-school NYC style). Террасы на мощёной улице. Идеально для семейного перекуса.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 54 Stone St (Stop 7)</span>
+      <span class="meta-item">🕐 До 22:30</span>
+      <span class="meta-item food-tag">💰 $$</span>
+    </div>
+  </div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">☕</span>
+    <span class="stop-name">Bluestone Lane</span>
+    <div class="stop-desc">
+      Австралийская кофейня с отличными flat white и avocado toast. Стильный интерьер, хороший кофе. Несколько локаций в FiDi.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 30 Broad St (у Stop 4)</span>
+      <span class="meta-item">🕐 До 17:00</span>
+      <span class="meta-item food-tag">💰 $-$$</span>
+    </div>
+  </div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">🥯</span>
+    <span class="stop-name">Zucker's Bagels</span>
+    <div class="stop-desc">
+      Настоящие нью-йоркские бейглы — это must-try для тех, кто впервые в Нью-Йорке. Свежие, с кремчизом, лососем, на любой вкус. На вынос удобно.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 111 Fulton St (между Stop 1→2)</span>
+      <span class="meta-item">🕐 До 17:00</span>
+      <span class="meta-item food-tag">💰 $</span>
+    </div>
+  </div>
+
+  <div class="stop-card food">
+    <span class="stop-number" style="background:#ff6b35;">🍦</span>
+    <span class="stop-name">Batch Ice Cream</span>
+    <div class="stop-desc">
+      Домашнее мороженое ручной работы. Необычные вкусы + классика. Маленькая лавка, большие порции.
+    </div>
+    <div class="stop-meta">
+      <span class="meta-item food-tag">📍 30 Old Slip (у Stop 7)</span>
+      <span class="meta-item food-tag">💰 $</span>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="section-header">💡 Полезное</div>
+
+  <div class="tip">
+    🚇 <b>Как уехать:</b> Метро Bowling Green (4, 5) или Whitehall St (R, W) — прямо у Battery Park.
   </div>
 
   <div class="tip">
-    🍼 <b>Туалеты с пеленальным столиком:</b> The Oculus (Stop 2), Battery Park Castle Clinton (Stop 7). Stone Street рестораны тоже пустят.
+    🍼 <b>Туалеты:</b> The Oculus (Stop 2), Eataly, Battery Park Castle Clinton (Stop 8). Рестораны на Stone Street тоже пустят.
+  </div>
+
+  <div class="tip">
+    🌡 <b>Погода (март):</b> Вечером может быть прохладно у воды (~8-12°C). Возьмите лёгкие куртки, особенно для Battery Park на ветру.
+  </div>
+
+  <div class="tip">
+    ⚠️ <b>Elevated Acre</b> (секретный парк на крыше у 55 Water St) — закрывается в 13:00 по будням. Приходите сюда в другой день утром, если будет время.
   </div>
 
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// Main route stops
 const stops = [
-  { lat: 40.7058, lng: -73.9969, name: "1. Brooklyn Bridge 🌉", desc: "Старт маршрута · 35 мин", color: "#e94560" },
-  { lat: 40.7115, lng: -74.0134, name: "2. 9/11 Memorial & Oculus 🕊", desc: "Мемориал + архитектура · 30-35 мин", color: "#e94560" },
-  { lat: 40.7081, lng: -74.0121, name: "3. Trinity Church ⛪", desc: "Готическая церковь · 10 мин", color: "#e94560" },
-  { lat: 40.7069, lng: -74.0101, name: "4. Wall Street 💰", desc: "NYSE + Federal Hall · 15 мин", color: "#e94560" },
-  { lat: 40.7056, lng: -74.0134, name: "5. Charging Bull 🐂", desc: "Культовое фото · 10 мин", color: "#f5a623" },
-  { lat: 40.7038, lng: -74.0085, name: "6. Stone Street 🍺", desc: "Перекус · 15-20 мин", color: "#e94560" },
-  { lat: 40.7033, lng: -74.0170, name: "7. Battery Park 🌅", desc: "Финиш + закат · 20-30 мин", color: "#f5a623" },
+  { lat: 40.7058, lng: -73.9969, name: "1. Brooklyn Bridge 🌉", desc: "Старт · 35 мин", type: "main" },
+  { lat: 40.7115, lng: -74.0134, name: "2. 9/11 Memorial & Oculus 🕊", desc: "30 мин · бесплатно", type: "main" },
+  { lat: 40.7081, lng: -74.0121, name: "3. Trinity Church ⛪", desc: "10 мин", type: "main" },
+  { lat: 40.7069, lng: -74.0101, name: "4. Wall Street 💰", desc: "Federal Hall + NYSE · 15 мин", type: "main" },
+  { lat: 40.7090, lng: -74.0078, name: "5. Federal Reserve Bank 🏦", desc: "Золотохранилище · 5 мин (NEW)", type: "bonus" },
+  { lat: 40.7056, lng: -74.0134, name: "6. Charging Bull 🐂", desc: "Культовое фото · 10 мин", type: "highlight" },
+  { lat: 40.7038, lng: -74.0085, name: "7. Stone Street 🍺", desc: "Перекус · 20 мин", type: "main" },
+  { lat: 40.7033, lng: -74.0170, name: "8. Battery Park 🌅", desc: "Закат + Statue of Liberty · 30 мин", type: "highlight" },
+  { lat: 40.7020, lng: -74.0155, name: "8a. The Sphere 🔮", desc: "Памятник 9/11 · 5 мин (NEW)", type: "bonus" },
+  { lat: 40.7013, lng: -74.0147, name: "8b. SeaGlass Carousel 🎠", desc: "Светящиеся рыбы · $5 (NEW)", type: "bonus" },
 ];
 
-// Walking route waypoints (approximate street-level path)
+// Food & coffee spots
+const food = [
+  { lat: 40.7098, lng: -74.0142, name: "☕ Eataly Downtown", desc: "Итальянский фудхолл · до 23:00" },
+  { lat: 40.7027, lng: -74.0090, name: "🍸 The Dead Rabbit", desc: "Лучший бар мира · 30 Water St" },
+  { lat: 40.7039, lng: -74.0089, name: "🍕 Adrienne's Pizzabar", desc: "Легендарная пицца · Stone St" },
+  { lat: 40.7068, lng: -74.0112, name: "☕ Bluestone Lane", desc: "Flat white · 30 Broad St" },
+  { lat: 40.7094, lng: -74.0059, name: "🥯 Zucker's Bagels", desc: "Настоящие NYC бейглы · Fulton St" },
+  { lat: 40.7032, lng: -74.0078, name: "🍦 Batch Ice Cream", desc: "Домашнее мороженое · 30 Old Slip" },
+];
+
 const routeCoords = [
-  [40.7058, -73.9969],  // Brooklyn Bridge entrance
-  [40.7073, -73.9990],  // Park Row
-  [40.7102, -74.0065],  // Broadway heading south-west
-  [40.7115, -74.0134],  // 9/11 Memorial
-  [40.7081, -74.0121],  // Trinity Church
-  [40.7069, -74.0101],  // Wall Street
-  [40.7056, -74.0134],  // Charging Bull
-  [40.7044, -74.0110],  // heading to Stone St
-  [40.7038, -74.0085],  // Stone Street
-  [40.7035, -74.0120],  // heading to Battery Park
-  [40.7033, -74.0170],  // Battery Park
+  [40.7058, -73.9969],
+  [40.7073, -73.9990],
+  [40.7102, -74.0065],
+  [40.7115, -74.0134],
+  [40.7081, -74.0121],
+  [40.7069, -74.0101],
+  [40.7090, -74.0078],  // FRB
+  [40.7070, -74.0110],  // back to Broadway
+  [40.7056, -74.0134],
+  [40.7044, -74.0110],
+  [40.7038, -74.0085],
+  [40.7035, -74.0120],
+  [40.7033, -74.0170],
+  [40.7020, -74.0155],  // Sphere
+  [40.7013, -74.0147],  // SeaGlass
 ];
 
-const map = L.map('map', {
-  zoomControl: true,
-  scrollWheelZoom: true,
-}).setView([40.7075, -74.0080], 15);
+const map = L.map('map', { zoomControl: true, scrollWheelZoom: true })
+  .setView([40.7060, -74.0080], 15);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © CARTO',
+  attribution: '© OSM © CARTO',
   maxZoom: 19
 }).addTo(map);
 
-// Draw route line
+// Route line
 L.polyline(routeCoords, {
   color: '#e94560',
   weight: 4,
@@ -352,39 +551,42 @@ L.polyline(routeCoords, {
   lineCap: 'round'
 }).addTo(map);
 
-// Add markers
+// Color map
+const colors = { main: '#e94560', highlight: '#f5a623', bonus: '#4ecdc4' };
+
+// Main stops
 stops.forEach((stop, i) => {
-  const markerHtml = `<div style="
-    background: ${stop.color};
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    border: 2px solid white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  ">${i + 1}</div>`;
-  
+  const col = colors[stop.type] || colors.main;
+  const label = stop.name.match(/^(\d+\w?[ab]?)\./)?.[1] || (i+1);
+  const size = stop.type === 'bonus' ? 24 : 30;
   const icon = L.divIcon({
-    html: markerHtml,
+    html: `<div style="background:${col};color:#fff;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:${size===24?11:13}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${label}</div>`,
     className: '',
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -18]
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2-2]
   });
-  
   L.marker([stop.lat, stop.lng], { icon })
     .addTo(map)
     .bindPopup(`<div class="popup-title">${stop.name}</div><div class="popup-time">${stop.desc}</div>`);
 });
 
-// Fit bounds with padding
-const bounds = L.latLngBounds(stops.map(s => [s.lat, s.lng]));
-map.fitBounds(bounds, { padding: [30, 30] });
+// Food markers
+food.forEach(f => {
+  const icon = L.divIcon({
+    html: `<div style="background:#ff6b35;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.3);">🍴</div>`,
+    className: '',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -14]
+  });
+  L.marker([f.lat, f.lng], { icon })
+    .addTo(map)
+    .bindPopup(`<div class="popup-title">${f.name}</div><div class="popup-food">${f.desc}</div>`);
+});
+
+const allCoords = [...stops, ...food].map(s => [s.lat, s.lng]);
+map.fitBounds(L.latLngBounds(allCoords), { padding: [25, 25] });
 </script>
 
 </body>
